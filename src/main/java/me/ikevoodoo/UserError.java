@@ -63,7 +63,7 @@ public class UserError {
     private void print(PrintStream stream, String prefix) {
         stream.printf("%s%s\n", prefix, this.message);
         this.printList(stream, this.reasons, " - caused by: ", "     |        ");
-        this.printList(stream, this.help, " + help: ", !this.reasons.isEmpty() ? "     |        " : "     |   ");
+        this.printList(stream, this.help, " + help: ", "     |   ");
     }
 
     private void printList(PrintStream stream, List<String> list, String prefix, String joiner) {

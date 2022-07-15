@@ -1,15 +1,19 @@
 package me.ikevoodoo;
 
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The UserError class is used to nicely print errors
  *
  * @see UserError#from(String)
- * @see UserError#intoUserError(Error)
- * @see UserError#intoUserError(Exception) 
+ * @see UserError#intoUserError(Throwable)
+ * @see UserError#fromStacktrace(Throwable)
  * @see UserError#UserError(String)
  * */
 @SuppressWarnings("unused")
@@ -31,6 +35,22 @@ public class UserError {
     }
 
     /**
+     * Create a new UserError from an exception if thrown
+     *
+     * @param runnable A runnable, it may throw an exception
+     * @return An optional of UserError, if the runnable generated an exception this will be populated with a UserError
+     * */
+    public static Optional<UserError> from(ExceptionRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Throwable throwable) {
+            return Optional.of(from(throwable.getLocalizedMessage()));
+        }
+
+        return Optional.empty();
+    }
+
+    /**
      * Create a new UserError from a message
      *
      * @param message The message you want to print
@@ -41,25 +61,45 @@ public class UserError {
     }
 
     /**
-     * Create a new UserError from an Error
+     * Create a new UserError from a Throwable
      *
-     * @param error The error you want to print
-     *              Takes the localized message from the error
+     * @param throwable The throwable you want to print
+     *                  Takes the localized message from the throwable
      * @return An instance of UserError
      * */
-    public static UserError intoUserError(Error error) {
-        return new UserError(error.getLocalizedMessage());
+    public static UserError intoUserError(Throwable throwable) {
+        return new UserError(throwable.getLocalizedMessage());
     }
 
     /**
-     * Create a new UserError from an Exception
+     * Create a new UserError from an exception if thrown, generated reasons and help
      *
-     * @param exception The error you want to print
-     *                  Takes the localized message from the exception
+     * @param runnable A runnable, it may throw an exception
+     * @return An optional of UserError, if the runnable generated an exception this will be populated with a UserError
+     * */
+    public static Optional<UserError> fromStacktrace(ExceptionRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Throwable throwable) {
+            return Optional.of(fromStacktrace(throwable));
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Create a new UserError from an Exception and generate reasons and help
+     *
+     * @param throwable The throable you want to print
      * @return An instance of UserError
      * */
-    public static UserError intoUserError(Exception exception) {
-        return new UserError(exception.getLocalizedMessage());
+    public static UserError fromStacktrace(Throwable throwable) {
+        UserError error = new UserError(throwable.getLocalizedMessage());
+        StackTraceError stackTraceError = new StackTraceError(error);
+
+        stackTraceError.apply(throwable);
+
+        return error;
     }
 
     /**
@@ -158,4 +198,54 @@ public class UserError {
         list.subList(1, list.size()).forEach(entry -> stream.printf("%s%s\n", joiner, entry));
     }
 
+}
+
+/**
+ * An interface used to run code and catch all throwable errors
+ * */
+interface ExceptionRunnable {
+    void run() throws Throwable;
+}
+
+class StackTraceError {
+    private static final Pattern NPE_EXTRACTOR = Pattern.compile("Cannot invoke \"([^\"]+)\" because \"([^\"]+)\" is null");
+    private static final Pattern CLASS_EXTRACTOR = Pattern.compile(".*(?=\\.)");
+    private static final Pattern CLASS_NAME_EXTRACTOR = Pattern.compile("(?<=\\.)[^.]*$");
+
+    private final UserError error;
+
+    protected StackTraceError(UserError error) {
+        this.error = error;
+    }
+
+    void apply(Throwable throwable) {
+        for (StackTraceElement element : throwable.getStackTrace()) {
+            this.error.addReason(String.format("%s.%s(%s:%s)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber()));
+        }
+
+        if (throwable instanceof NullPointerException) {
+            this.applyNPE(throwable);
+        }
+    }
+
+    private void applyNPE(Throwable throwable) {
+        Matcher matcher = NPE_EXTRACTOR.matcher(throwable.getLocalizedMessage());
+        if (matcher.matches()) {
+            String attempted = matcher.group(1);
+            String clazz = attempted;
+            Matcher classMatcher = CLASS_EXTRACTOR.matcher(attempted);
+            if (classMatcher.find()) {
+                clazz = classMatcher.group();
+                Matcher clazzNameMatcher = CLASS_NAME_EXTRACTOR.matcher(clazz);
+                if (clazzNameMatcher.find()) {
+                    clazz = clazzNameMatcher.group();
+                }
+            }
+            String var = matcher.group(2);
+
+            this.error.addHelp(String.format("Try checking if %s is not null with an if statement", var));
+            this.error.addHelp(String.format("Try wrapping %s in a Optional<%s>", var, clazz));
+            this.error.addHelp(String.format("Check where %s is assigned", var));
+        }
+    }
 }

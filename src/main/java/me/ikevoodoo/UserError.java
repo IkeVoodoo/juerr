@@ -47,7 +47,8 @@ public class UserError {
      * @param thread The thread
      * */
     public static void setExceptionHandler(Thread thread) {
-        thread.setUncaughtExceptionHandler((t, e) -> fromStacktrace(e).printAll(String.format("[%s] Uncaught: ", t.getName())));
+        thread.setUncaughtExceptionHandler((t, e) ->
+                fromStacktrace(e).printAll(String.format("[Thread %s] Uncaught: ", t.getName())));
     }
 
     /**
@@ -245,7 +246,7 @@ class StackTraceError {
     }
 
     private void applyNPE(Throwable throwable) {
-        Matcher matcher = NPE_EXTRACTOR.matcher(throwable.getLocalizedMessage());
+        Matcher matcher = NPE_EXTRACTOR.matcher(String.valueOf(throwable.getLocalizedMessage()));
         if (matcher.matches()) {
             String attempted = matcher.group(1);
             String clazz = attempted;
@@ -262,6 +263,8 @@ class StackTraceError {
             this.error.addHelp(String.format("Try checking if %s is not null with an if statement", var));
             this.error.addHelp(String.format("Try wrapping %s in a Optional<%s>", var, clazz));
             this.error.addHelp(String.format("Check where %s is assigned", var));
+        } else {
+            this.error.addHelp("I don't know how to help you.");
         }
     }
 }

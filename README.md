@@ -52,7 +52,6 @@ import me.ikevoodoo.UserError;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class ErrorTest {
     public static void main(String[] args) {
@@ -74,7 +73,6 @@ import me.ikevoodoo.UserError;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class ErrorTest {
     public static void main(String[] args) {
@@ -98,6 +96,32 @@ Could not read file: Cannot invoke "java.nio.file.Path.getFileSystem()" because 
      |   Try wrapping path in a Optional<Path>
      |   Check where path is assigned
 ```
+## Uncaught exceptions
+```java
+import me.ikevoodoo.UserError;
+
+import java.io.IOException;
+import java.nio.file.Files;
+
+public class ErrorTest {
+    public static void main(String[] args) throws IOException {
+        UserError.setExceptionHandler(); // Sets the thread's uncaught exception handler
+        
+        Files.readAllBytes(null);
+    }
+}
+```
+### Output
+```
+[Thread main] Uncaught: null
+ - caused by: java.nio.file.Files.provider(Files.java:97)
+     |        java.nio.file.Files.newByteChannel(Files.java:361)
+     |        java.nio.file.Files.newByteChannel(Files.java:407)
+     |        java.nio.file.Files.readAllBytes(Files.java:3152)
+     |        me.ikevoodoo.ErrorTest.main(Test.java:11)
+ + help: I don't know how to help you.
+```
+
 
 # Maven
 ```xml

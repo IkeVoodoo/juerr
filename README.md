@@ -20,8 +20,8 @@ public class ErrorTest {
 ### Output
 ```
 juerr/error: could not open file
-- caused by: The system cannot find the file specified.
-+ help: Does this file exist?
+ - caused by: The system cannot find the file specified.
+ + help: Does this file exist?
 ```
 ## WIth multiple arguments
 ```java

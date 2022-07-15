@@ -35,6 +35,22 @@ public class UserError {
     }
 
     /**
+     * Sets UserError to be the current thread's uncaught exception handler
+     * */
+    public static void setExceptionHandler() {
+        setExceptionHandler(Thread.currentThread());
+    }
+
+    /**
+     * Sets UserError to be the thread's uncaught exception handler
+     *
+     * @param thread The thread
+     * */
+    public static void setExceptionHandler(Thread thread) {
+        thread.setUncaughtExceptionHandler((t, e) -> fromStacktrace(e).printAll(String.format("[%s] Uncaught: ", t.getName())));
+    }
+
+    /**
      * Create a new UserError from an exception if thrown
      *
      * @param runnable A runnable, it may throw an exception

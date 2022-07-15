@@ -9,7 +9,11 @@ import java.util.List;
  *
  * @see UserError#from(String)
  * @see UserError#intoUserError(Error)
+<<<<<<< HEAD
  * @see UserError#intoUserError(Throwable)
+=======
+ * @see UserError#intoUserError(Exception) 
+>>>>>>> 0560a8a5ca0a7573fdc43ea72a28bf86bc3f5762
  * @see UserError#UserError(String)
  * */
 @SuppressWarnings("unused")

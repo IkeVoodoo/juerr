@@ -119,7 +119,6 @@ public class ErrorTest {
      |        java.nio.file.Files.newByteChannel(Files.java:407)
      |        java.nio.file.Files.readAllBytes(Files.java:3152)
      |        me.ikevoodoo.ErrorTest.main(Test.java:11)
- + help: I don't know how to help you.
 ```
 
 

@@ -263,8 +263,6 @@ class StackTraceError {
             this.error.addHelp(String.format("Try checking if %s is not null with an if statement", var));
             this.error.addHelp(String.format("Try wrapping %s in a Optional<%s>", var, clazz));
             this.error.addHelp(String.format("Check where %s is assigned", var));
-        } else {
-            this.error.addHelp("I don't know how to help you.");
         }
     }
 }

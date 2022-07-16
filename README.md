@@ -1,5 +1,5 @@
 ## Juerr
-`Juerr` is a single-file Java port of the [uerr](https://crates.io/crates/uerr) crate, it provides stunning visual error handling.
+`Juerr` is a Java port of the [uerr](https://crates.io/crates/uerr) crate, it provides stunning visual error handling.
 
 # Showcase
 Using the code below, we can display a simple error and show it to the user.

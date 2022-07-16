@@ -1,7 +1,6 @@
 package me.ikevoodoo;
 
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +17,8 @@ import java.util.regex.Pattern;
  * */
 @SuppressWarnings("unused")
 public class UserError {
+
+    private static final PrintStreamPrinter streamPrinter = new PrintStreamPrinter(System.err);
 
     private final String message;
     private final List<String> help;
@@ -127,7 +128,7 @@ public class UserError {
      * @return The current UserError
      * */
     public UserError printAll(String prefix) {
-        return this.printAll(System.err, prefix);
+        return this.printAll(streamPrinter, prefix);
     }
 
     /**
@@ -137,8 +138,8 @@ public class UserError {
      *               Added before the message
      * @return The current UserError
      * */
-    public UserError printAll(PrintStream stream, String prefix) {
-        this.print(stream, prefix);
+    public UserError printAll(Printer<?> printer, String prefix) {
+        this.print(printer, prefix);
         return this;
     }
 
@@ -192,29 +193,56 @@ public class UserError {
     /**
      * Internal use only, prints the UserError to a PrintStream
      *
-     * @param stream The PrintStream to print to
+     * @param printer The Printer to print to
      * @param prefix The prefix to prepend to the message
      * */
-    private void print(PrintStream stream, String prefix) {
-        stream.printf("%s%s\n", prefix, this.message);
-        this.printList(stream, this.reasons, " - caused by: ", "     |        ");
-        this.printList(stream, this.help, " + help: ", "     |   ");
+    private void print(Printer<?> printer, String prefix) {
+        printer.printf("%s%s\n", prefix, this.message);
+        this.printList(printer, this.reasons, " - caused by: ", "     |        ");
+        this.printList(printer, this.help, " + help: ", "     |   ");
     }
 
     /**
      * Internal use only, prints a list to a PrinStream
      *
-     * @param stream The PrintStream to print to
+     * @param printer The Printer to print to
      * @param list The list to print
      * @param prefix The prefix to prepend to the message
      * @param joiner The prefix for all messages after the first one
      * */
-    private void printList(PrintStream stream, List<String> list, String prefix, String joiner) {
+    private void printList(Printer<?> printer, List<String> list, String prefix, String joiner) {
         if (list.isEmpty()) return;
-        stream.printf("%s%s\n", prefix, list.get(0));
-        list.subList(1, list.size()).forEach(entry -> stream.printf("%s%s\n", joiner, entry));
+        printer.printf("%s%s\n", prefix, list.get(0));
+        list.subList(1, list.size()).forEach(entry -> printer.printf("%s%s\n", joiner, entry));
     }
 
+}
+
+class PrintStreamPrinter extends Printer<PrintStream> {
+
+    protected PrintStreamPrinter(PrintStream out) {
+        super(out);
+    }
+
+    @Override
+    void printf(String message, Object... args) {
+        getOut().printf(message, args);
+    }
+}
+
+abstract class Printer<T> {
+
+    private final T out;
+
+    protected Printer(T out) {
+        this.out = out;
+    }
+
+    protected T getOut() {
+        return this.out;
+    }
+
+    abstract void printf(String message, Object... args);
 }
 
 /**

@@ -218,33 +218,6 @@ public class UserError {
 
 }
 
-class PrintStreamPrinter extends Printer<PrintStream> {
-
-    protected PrintStreamPrinter(PrintStream out) {
-        super(out);
-    }
-
-    @Override
-    void printf(String message, Object... args) {
-        getOut().printf(message, args);
-    }
-}
-
-abstract class Printer<T> {
-
-    private final T out;
-
-    protected Printer(T out) {
-        this.out = out;
-    }
-
-    protected T getOut() {
-        return this.out;
-    }
-
-    abstract void printf(String message, Object... args);
-}
-
 /**
  * An interface used to run code and catch all throwable errors
  * */

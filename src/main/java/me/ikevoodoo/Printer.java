@@ -8,9 +8,9 @@ public abstract class Printer<T> {
         this.out = out;
     }
 
-    protected T getOut() {
+    protected final T getOut() {
         return this.out;
     }
 
-    abstract void printf(String message, Object... args);
+    abstract public void printf(String message, Object... args);
 }

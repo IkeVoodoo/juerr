@@ -9,7 +9,7 @@ public class PrintStreamPrinter extends Printer<PrintStream> {
     }
 
     @Override
-    void printf(String message, Object... args) {
+    public void printf(String message, Object... args) {
         getOut().printf(message, args);
     }
 }

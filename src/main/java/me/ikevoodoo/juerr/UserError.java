@@ -1,11 +1,10 @@
-package me.ikevoodoo;
+package me.ikevoodoo.juerr;
 
-import java.io.PrintStream;
+import me.ikevoodoo.juerr.traces.StackTraceError;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * The UserError class is used to nicely print errors
@@ -21,8 +20,8 @@ public class UserError {
     private static final PrintStreamPrinter streamPrinter = new PrintStreamPrinter(System.err);
 
     private final String message;
-    private final List<String> help;
-    private final List<String> reasons;
+    private final List<UserErrorEntry> help;
+    private final List<UserErrorEntry> reasons;
 
     /**
      * Create a new UserError
@@ -149,6 +148,24 @@ public class UserError {
      * @return The current UserError
      * */
     public UserError addHelp(String help) {
+        return this.addHelp(UserErrorEntry.from(help.split("\n")));
+    }
+
+    /**
+     * Add a reason line
+     *
+     * @return The current UserError
+     * */
+    public UserError addReason(String reason) {
+        return this.addReason(UserErrorEntry.from(reason.split("\n")));
+    }
+
+    /**
+     * Add a help line
+     *
+     * @return The current UserError
+     * */
+    public UserError addHelp(UserErrorEntry help) {
         this.help.add(help);
         return this;
     }
@@ -158,7 +175,7 @@ public class UserError {
      *
      * @return The current UserError
      * */
-    public UserError addReason(String reason) {
+    public UserError addReason(UserErrorEntry reason) {
         this.reasons.add(reason);
         return this;
     }
@@ -177,7 +194,7 @@ public class UserError {
      *
      * @return The list of reasons
      * */
-    public List<String> reasons() {
+    public List<UserErrorEntry> reasons() {
         return this.reasons;
     }
 
@@ -186,7 +203,7 @@ public class UserError {
      *
      * @return The list of help lines
      * */
-    public List<String> help() {
+    public List<UserErrorEntry> help() {
         return this.help;
     }
 
@@ -197,7 +214,7 @@ public class UserError {
      * @param prefix The prefix to prepend to the message
      * */
     private void print(Printer<?> printer, String prefix) {
-        printer.printf("%s%s\n", prefix, this.message);
+        printer.printfln("%s%s", prefix, this.message);
         this.printList(printer, this.reasons, " - caused by: ", "     |        ");
         this.printList(printer, this.help, " + help: ", "     |   ");
     }
@@ -210,10 +227,36 @@ public class UserError {
      * @param prefix The prefix to prepend to the message
      * @param joiner The prefix for all messages after the first one
      * */
-    private void printList(Printer<?> printer, List<String> list, String prefix, String joiner) {
+    private void printList(Printer<?> printer, List<UserErrorEntry> list, String prefix, String joiner) {
         if (list.isEmpty()) return;
-        printer.printf("%s%s\n", prefix, list.get(0));
-        list.subList(1, list.size()).forEach(entry -> printer.printf("%s%s\n", joiner, entry));
+
+        UserErrorEntry first = findFirstWithLines(list);
+        if (first == null) return;
+        printer.printfln("%s%s", prefix, first.lines().get(0));
+        for (int i = 1; i < first.lines().size(); i++) {
+            printer.printfln("%s%s", joiner, first.lines().get(i));
+        }
+        int index = list.indexOf(first) + 1;
+
+        list.subList(index, list.size()).forEach(entry ->
+                entry.lines().forEach(line ->
+                        printer.printfln("%s%s", joiner, line)));
+
+        /*
+        UserErrorEntry first = list.get(0);
+
+        list.get(0).lines().forEach(line -> printer.printfln("%s%s", prefix, line));
+
+        list.subList(1, list.size()).forEach(entry ->
+                entry.lines().forEach(line ->
+                        printer.printfln("%s%s", joiner, line)));*/
+    }
+
+    private UserErrorEntry findFirstWithLines(List<UserErrorEntry> list) {
+        for (UserErrorEntry entry : list)
+            if (entry.lines().size() > 0)
+                return entry;
+        return null;
     }
 
 }
@@ -223,47 +266,4 @@ public class UserError {
  * */
 interface ExceptionRunnable {
     void run() throws Throwable;
-}
-
-class StackTraceError {
-    private static final Pattern NPE_EXTRACTOR = Pattern.compile("Cannot invoke \"([^\"]+)\" because \"([^\"]+)\" is null");
-    private static final Pattern CLASS_EXTRACTOR = Pattern.compile(".*(?=\\.)");
-    private static final Pattern CLASS_NAME_EXTRACTOR = Pattern.compile("(?<=\\.)[^.]*$");
-
-    private final UserError error;
-
-    protected StackTraceError(UserError error) {
-        this.error = error;
-    }
-
-    void apply(Throwable throwable) {
-        for (StackTraceElement element : throwable.getStackTrace()) {
-            this.error.addReason(String.format("%s.%s(%s:%s)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber()));
-        }
-
-        if (throwable instanceof NullPointerException) {
-            this.applyNPE(throwable);
-        }
-    }
-
-    private void applyNPE(Throwable throwable) {
-        Matcher matcher = NPE_EXTRACTOR.matcher(String.valueOf(throwable.getLocalizedMessage()));
-        if (matcher.matches()) {
-            String attempted = matcher.group(1);
-            String clazz = attempted;
-            Matcher classMatcher = CLASS_EXTRACTOR.matcher(attempted);
-            if (classMatcher.find()) {
-                clazz = classMatcher.group();
-                Matcher clazzNameMatcher = CLASS_NAME_EXTRACTOR.matcher(clazz);
-                if (clazzNameMatcher.find()) {
-                    clazz = clazzNameMatcher.group();
-                }
-            }
-            String var = matcher.group(2);
-
-            this.error.addHelp(String.format("Try checking if %s is not null with an if statement", var));
-            this.error.addHelp(String.format("Try wrapping %s in a Optional<%s>", var, clazz));
-            this.error.addHelp(String.format("Check where %s is assigned", var));
-        }
-    }
 }

@@ -1,4 +1,4 @@
-package me.ikevoodoo;
+package me.ikevoodoo.juerr;
 
 import java.io.PrintStream;
 

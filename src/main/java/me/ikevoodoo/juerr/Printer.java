@@ -1,4 +1,4 @@
-package me.ikevoodoo;
+package me.ikevoodoo.juerr;
 
 public abstract class Printer<T> {
 
@@ -13,4 +13,8 @@ public abstract class Printer<T> {
     }
 
     abstract public void printf(String message, Object... args);
+
+    public void printfln(String message, Object... args) {
+        printf(message + '\n', args);
+    }
 }

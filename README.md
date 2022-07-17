@@ -6,7 +6,7 @@ Using the code below, we can display a simple error and show it to the user.
 
 ```java
 
-import me.ikevoodoo.UserError;
+import me.ikevoodoo.juerr.UserError;
 
 public class ErrorTest {
     public static void main(String[] args) {
@@ -24,8 +24,9 @@ juerr/error: could not open file
  + help: Does this file exist?
 ```
 ## With multiple arguments
+
 ```java
-import me.ikevoodoo.UserError;
+import me.ikevoodoo.juerr.UserError;
 
 public class ErrorTest {
     public static void main(String[] args) {
@@ -47,8 +48,9 @@ program.jar: could not open file
      |   Filler help.
 ```
 ## Running and auto catching exceptions
+
 ```java
-import me.ikevoodoo.UserError;
+import me.ikevoodoo.juerr.UserError;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,8 +70,9 @@ public class ErrorTest {
 myFunction: Any error that was raised
 ```
 ## Running and generating error (WIP)
+
 ```java
-import me.ikevoodoo.UserError;
+import me.ikevoodoo.juerr.UserError;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -97,8 +100,9 @@ Could not read file: Cannot invoke "java.nio.file.Path.getFileSystem()" because 
      |   Check where path is assigned
 ```
 ## Uncaught exceptions
+
 ```java
-import me.ikevoodoo.UserError;
+import me.ikevoodoo.juerr.UserError;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -106,7 +110,7 @@ import java.nio.file.Files;
 public class ErrorTest {
     public static void main(String[] args) throws IOException {
         UserError.setExceptionHandler(); // Sets the thread's uncaught exception handler
-        
+
         Files.readAllBytes(null);
     }
 }

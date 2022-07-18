@@ -110,6 +110,7 @@ import java.nio.file.Files;
 public class ErrorTest {
     public static void main(String[] args) throws IOException {
         UserError.setExceptionHandler(); // Sets the thread's uncaught exception handler
+        ProjectInfo.load(ErrorTest.class); // Load your project
 
         Files.readAllBytes(null);
     }

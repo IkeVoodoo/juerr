@@ -18,6 +18,11 @@ public class UserErrorEntry {
         return new UserErrorEntry(lines);
     }
 
+    public UserErrorEntry append(UserErrorEntry entry) {
+        this.lines.addAll(entry.lines());
+        return this;
+    }
+
     public List<String> lines() {
         return lines;
     }

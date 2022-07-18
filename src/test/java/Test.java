@@ -1,14 +1,18 @@
+import me.ikevoodoo.juerr.ProjectInfo;
 import me.ikevoodoo.juerr.UserError;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 
 public class Test {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         UserError.setExceptionHandler();
+        ProjectInfo.load(Test.class);
 
-        Files.readAllLines(null);
+        A.tryButFail();
+        //Files.readAllLines(null);
 
         /**
          * Goal:
@@ -46,8 +50,37 @@ public class Test {
 
 }
 
-class Employee {
-    public String getName() {
-        return "e";
+class A {
+
+    public static void tryButFail() {
+        new B().getC().getD().execute();
     }
+
+    public static class B {
+
+        public C getC() {
+            return new C();
+        }
+
+        public static class C {
+
+            public D getD() {
+                return new D();
+            }
+
+            public static class D {
+                public void execute() {
+                    throw new RuntimeException("Exception");
+                }
+
+            }
+
+
+        }
+
+
+
+    }
+
+
 }

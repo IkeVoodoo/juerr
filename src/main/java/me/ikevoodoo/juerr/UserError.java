@@ -42,6 +42,13 @@ public class UserError {
     }
 
     /**
+     * Sets UserError to be the thread uncaught error handler for all threads
+     * */
+    public static void setAllExceptionHandler() {
+        Thread.getAllStackTraces().forEach((thread, stackTraceElements) -> setExceptionHandler(thread));
+    }
+
+    /**
      * Sets UserError to be the thread's uncaught exception handler
      *
      * @param thread The thread
